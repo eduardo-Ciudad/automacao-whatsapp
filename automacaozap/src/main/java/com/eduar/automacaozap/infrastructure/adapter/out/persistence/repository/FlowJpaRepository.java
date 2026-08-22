@@ -10,4 +10,6 @@ import com.eduar.automacaozap.infrastructure.adapter.out.persistence.entity.Flow
 public interface FlowJpaRepository extends JpaRepository<FlowJpaEntity, UUID> {
 
     Optional<FlowJpaEntity> findByIdAndActiveTrue(UUID id);
+
+    Optional<FlowJpaEntity> findFirstByCompanyIdAndActiveTrueOrderByCreatedAtDesc(Long companyId);
 }
