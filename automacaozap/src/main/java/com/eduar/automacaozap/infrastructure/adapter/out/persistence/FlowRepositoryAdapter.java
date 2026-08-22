@@ -23,6 +23,11 @@ public class FlowRepositoryAdapter implements FlowRepositoryPort {
         return flowJpaRepository.findByIdAndActiveTrue(id).map(this::toDomain);
     }
 
+    @Override
+    public Optional<Flow> findDefaultActiveFlow(Long companyId) {
+        return flowJpaRepository.findFirstByCompanyIdAndActiveTrueOrderByCreatedAtDesc(companyId).map(this::toDomain);
+    }
+
     private Flow toDomain(FlowJpaEntity entity) {
         return Flow.builder()
                 .id(entity.getId())
