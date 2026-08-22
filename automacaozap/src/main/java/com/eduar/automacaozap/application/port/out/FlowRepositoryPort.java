@@ -8,4 +8,6 @@ import com.eduar.automacaozap.domain.model.Flow;
 public interface FlowRepositoryPort {
 
     Optional<Flow> findActiveById(UUID id);
+
+    Optional<Flow> findDefaultActiveFlow(Long companyId);
 }
