@@ -20,12 +20,7 @@ import com.eduar.automacaozap.domain.model.StepType;
 
 public class FlowEngine {
 
-    /**
-     * Limite defensivo de avanços automáticos (MESSAGE/ACTION) em uma única
-     * chamada a {@link #process}. Um fluxo mal configurado (ex: MESSAGE apontando
-     * para si mesmo) não deveria travar o processamento em um loop infinito — é
-     * preferível falhar de forma explícita.
-     */
+
     private static final int MAX_CASCADE_STEPS = 100;
 
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*}}");
@@ -34,9 +29,7 @@ public class FlowEngine {
         JsonNode definition = flow.getDefinition();
         JsonNode context = defaultIfMissing(conversation.getContext());
 
-        // Conversa nova: não há step anterior esperando resposta — apenas
-        // dispara o fluxo a partir do initialStepId, sem validar inboundText
-        // contra nada.
+
         if (conversation.getCurrentStepId() == null) {
             String initialStepId = definition.path("initialStepId").asText();
             return cascade(definition, initialStepId, context);
@@ -52,11 +45,6 @@ public class FlowEngine {
             case MENU -> {
                 String matchedTarget = matchMenuOption(currentStep, inboundText);
                 if (matchedTarget == null) {
-                    // Entrada inválida em um MENU não é um erro de sistema, é uma
-                    // interação normal de usuário (ele digitou algo fora das
-                    // opções) — por isso não lança exception, apenas repete o
-                    // mesmo step com uma mensagem de reforço, mantendo a conversa
-                    // no mesmo lugar.
                     List<String> messages = new ArrayList<>();
                     messages.add("Não entendi, escolha uma das opções abaixo:");
                     messages.add(buildMenuPrompt(currentStep));
@@ -71,14 +59,7 @@ public class FlowEngine {
                 resolvedNextStepId = currentStep.nextStepId();
             }
             default -> {
-                // TODO: sem classificação de intenção (IA) implementada ainda.
-                // Uma mensagem chegando enquanto a conversa está parada em um
-                // step que não espera input (MESSAGE/ACTION/HANDOFF já
-                // processados, ou HANDOFF aguardando atendente humano) é um
-                // evento fora do fluxo esperado. Por ora isso só é sinalizado
-                // como entrada inválida, sem alterar o estado da conversa;
-                // quando a classificação de intenção existir, este branch deve
-                // decidir se reinicia o fluxo, aciona um fluxo diferente, etc.
+
                 return new FlowEngineResult(currentStepId, context, List.of(), false, true, Optional.empty());
             }
         }
@@ -86,12 +67,7 @@ public class FlowEngine {
         return cascade(definition, resolvedNextStepId, updatedContext);
     }
 
-    /**
-     * Avança automaticamente por steps que não esperam input do usuário
-     * (MESSAGE, ACTION), acumulando mensagens e efeitos, até encontrar um step
-     * que precise parar e esperar (MENU, INPUT) ou que encerre o atendimento
-     * automático (HANDOFF).
-     */
+
     private FlowEngineResult cascade(JsonNode definition, String startStepId, JsonNode initialContext) {
         List<String> messages = new ArrayList<>();
         JsonNode context = initialContext;
@@ -109,9 +85,9 @@ public class FlowEngine {
                 }
                 case MENU -> {
                     messages.add(interpolate(step.text(), context));
-                    messages.add(buildMenuPrompt(step));
                     return new FlowEngineResult(cursor, context, messages, false, false, leadToCreate);
                 }
+
                 case INPUT -> {
                     messages.add(interpolate(step.text(), context));
                     return new FlowEngineResult(cursor, context, messages, false, false, leadToCreate);
@@ -144,10 +120,7 @@ public class FlowEngine {
                         + startStepId + "' — possível ciclo na definição do fluxo.");
     }
 
-    /**
-     * Localiza, dentro de {@code definition.steps}, o nó JSON do step com o id
-     * informado.
-     */
+
     private JsonNode parseStep(JsonNode definition, String stepId) {
         for (JsonNode stepNode : definition.path("steps")) {
             if (stepId.equals(stepNode.path("id").asText())) {
@@ -192,10 +165,10 @@ public class FlowEngine {
     private String buildMenuPrompt(FlowStep menuStep) {
         StringBuilder prompt = new StringBuilder();
         if (menuStep.text() != null) {
-            prompt.append(menuStep.text());
+            prompt.append(menuStep.text());     // ← repete step.text() de novo
         }
         for (String key : menuStep.options().keySet()) {
-            prompt.append('\n').append("- ").append(key);
+            prompt.append('\n').append("- ").append(key);   // ← só adiciona "- 1", "- 2"
         }
         return prompt.toString();
     }
