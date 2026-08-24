@@ -11,9 +11,11 @@ import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
 
 import com.eduar.automacaozap.infrastructure.adapter.out.persistence.entity.OutboundMessageJpaEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface OutboundMessageJpaRepository extends JpaRepository<OutboundMessageJpaEntity, Long> {
 
+    @Transactional
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
     @Query("select o from OutboundMessageJpaEntity o where o.status = 'PENDING' order by o.createdAt asc")
