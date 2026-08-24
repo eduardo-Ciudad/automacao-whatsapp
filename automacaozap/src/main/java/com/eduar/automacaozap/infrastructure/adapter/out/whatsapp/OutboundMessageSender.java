@@ -8,6 +8,8 @@ import com.eduar.automacaozap.domain.model.OutboundStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+
 @Component
 public class OutboundMessageSender {
 

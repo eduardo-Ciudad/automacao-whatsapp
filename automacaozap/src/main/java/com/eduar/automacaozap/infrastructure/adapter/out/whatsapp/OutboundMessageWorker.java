@@ -13,14 +13,14 @@ import java.util.List;
 public class OutboundMessageWorker {
 
     private final OutboundMessageRepositoryPort outboundMessageRepositoryPort;
-    private final WhatsAppSenderPort whatsAppSenderPort;
+    private final OutboundMessageSender outboundMessageSender;
 
     public OutboundMessageWorker(
             OutboundMessageRepositoryPort outboundMessageRepositoryPort,
-            WhatsAppSenderPort whatsAppSenderPort
+            OutboundMessageSender outboundMessageSender
     ) {
         this.outboundMessageRepositoryPort = outboundMessageRepositoryPort;
-        this.whatsAppSenderPort = whatsAppSenderPort;
+        this.outboundMessageSender = outboundMessageSender;
     }
 
     @Scheduled(fixedDelay = 5000)
@@ -29,10 +29,9 @@ public class OutboundMessageWorker {
 
         for (OutboundMessage message : batch) {
             try {
-                String metaMessageId = whatsAppSenderPort.send(message);
-
+                outboundMessageSender.sendOne(message);
             } catch (Exception e) {
-
+                System.err.println("Falha inesperada ao processar OutboundMessage id=" + message.getId() + ": " + e.getMessage());
             }
         }
     }
