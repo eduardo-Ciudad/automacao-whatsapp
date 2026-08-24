@@ -1,6 +1,7 @@
 package com.eduar.automacaozap.infrastructure.adapter.out.whatsapp;
 import com.eduar.automacaozap.application.port.out.WhatsAppSenderPort;
 import com.eduar.automacaozap.domain.model.OutboundMessage;
+import com.eduar.automacaozap.infrastructure.adapter.out.whatsapp.dto.WhatsAppSendResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -30,7 +31,7 @@ public class WhatsAppCloudApiAdapter implements WhatsAppSenderPort {
     public String send(OutboundMessage message) {
         Map<String, Object> requestBody = Map.of(
                 "messaging_product", "whatsapp",
-                "to", message.toWhatsappNumber(),
+                "to", message.getToWhatsappNumber(),
                 "type", "text",
                 "text", Map.of("body", extractText(message))
         );
@@ -45,6 +46,6 @@ public class WhatsAppCloudApiAdapter implements WhatsAppSenderPort {
     }
 
     private String extractText(OutboundMessage message) {
-        return message.payload().get("text").asText();
+        return message.getPayload().get("text").asText();
     }
 }

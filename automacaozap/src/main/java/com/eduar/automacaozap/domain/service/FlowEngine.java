@@ -17,34 +17,7 @@ import com.eduar.automacaozap.domain.model.Flow;
 import com.eduar.automacaozap.domain.model.FlowStep;
 import com.eduar.automacaozap.domain.model.StepType;
 
-/**
- * Motor de execução de fluxos de automação.
- *
- * <p>Classe pura de domínio: não injeta nenhum repository, port, bean Spring ou
- * cliente HTTP. Recebe {@link Flow}, {@link Conversation} e o texto recebido do
- * usuário como parâmetros, e devolve um {@link FlowEngineResult} descrevendo o que
- * deveria acontecer a seguir — quem efetivamente persiste a conversa, cria o lead ou
- * envia as mensagens é responsabilidade de uma camada de aplicação, não desta
- * classe.
- *
- * <p>Assume-se que {@link Flow#getDefinition()} segue este formato:
- * <pre>{@code
- * {
- *   "initialStepId": "step1",
- *   "steps": [
- *     {
- *       "id": "step1",
- *       "type": "MESSAGE" | "MENU" | "INPUT" | "ACTION" | "HANDOFF",
- *       "text": "...",
- *       "options": { "1": "stepX", "2": "stepY" },   // apenas em MENU
- *       "contextKey": "nome",                        // apenas em INPUT
- *       "actionType": "CREATE_LEAD",                  // apenas em ACTION
- *       "nextStepId": "stepZ"
- *     }
- *   ]
- * }
- * }</pre>
- */
+
 public class FlowEngine {
 
     /**
@@ -59,13 +32,18 @@ public class FlowEngine {
 
     public FlowEngineResult process(Flow flow, Conversation conversation, String inboundText) {
         JsonNode definition = flow.getDefinition();
-
-        String currentStepId = conversation.getCurrentStepId() != null
-                ? conversation.getCurrentStepId()
-                : definition.path("initialStepId").asText();
-
-        FlowStep currentStep = toFlowStep(parseStep(definition, currentStepId));
         JsonNode context = defaultIfMissing(conversation.getContext());
+
+        // Conversa nova: não há step anterior esperando resposta — apenas
+        // dispara o fluxo a partir do initialStepId, sem validar inboundText
+        // contra nada.
+        if (conversation.getCurrentStepId() == null) {
+            String initialStepId = definition.path("initialStepId").asText();
+            return cascade(definition, initialStepId, context);
+        }
+
+        String currentStepId = conversation.getCurrentStepId();
+        FlowStep currentStep = toFlowStep(parseStep(definition, currentStepId));
 
         String resolvedNextStepId;
         JsonNode updatedContext;
