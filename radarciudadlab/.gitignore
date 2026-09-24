@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Credenciais
+secret/
+*.json.key
+.env
