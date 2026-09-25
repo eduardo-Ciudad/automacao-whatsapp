@@ -1,0 +1,5 @@
+radar:
+  analytics:
+    google:
+      credentials-path: ${GA_CREDENTIALS_PATH:secret/radar-ciudadlab-cbad39e44a50.json}
+      row-limit: 10000
