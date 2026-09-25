@@ -1,11 +1,16 @@
 radar:
+  timezone: America/Sao_Paulo
   analytics:
     google:
       credentials-path: ${GA_CREDENTIALS_PATH:secret/radar-ciudadlab-cbad39e44a50.json}
       row-limit: 10000
+    sync:
+      enabled: true
+      cron: "0 0 6 * * *"
 
 spring:
   jpa:
     hibernate:
       ddl-auto: none
     open-in-view: false
+
